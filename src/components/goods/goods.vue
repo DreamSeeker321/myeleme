@@ -25,11 +25,11 @@
                         <span class="count">月售{{food.sellCount}}份</span><span>好评率{{food.rating}}%</span>
                       </div>
                       <div class="price">
-                        <span class="now">￥{{food.price}}</span><span class="old"
-                                                                      v-show="food.oldPrice">￥{{food.oldPrice}}</span>
+                        <span class="now">￥{{food.price}}</span><!-- 
+                         --><span class="old" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                       </div>
                       <div class="cartcontrol-wrapper">
-                        <!-- <cartcontrol @add="addFood" :food="food"></cartcontrol> -->
+                        <cartcontrol @add="addFood" :food="food"></cartcontrol>
                       </div>
                     </div>
                   </li>
@@ -37,39 +37,45 @@
               </li>
             </ul>
         </div>
-        <shopcart></shopcart>    
+        <shopcart ref=shopcart :selectFoods="selectFoods" :deliveryPrice="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
     </div>
 </template>
 
 <script type="text/ecmascript-6">
     import BScroll from 'better-scroll'
     import shopcart from 'components/shopcart/shopcart'
-    const ERR_OK = 0;
+    import cartcontrol from 'components/cartcontrol/cartcontrol'
+    //import food from 'components/food/food';
+
+    const ERR_OK = 0
+    const debug = process.env.NODE_ENV !== 'production';
     export default {
         props: {
-            seller: {
-                type: Object
-            }
+          seller: {
+            type: Object
+          }
         },
         data() {
-            return {
-                goods: [],
-                listHeight: [],
-                scrollY: 0
-            }
+          return {
+            goods: [],
+            listHeight: [],
+            scrollY: 0,
+            selectedFood: {}
+          }
         },
         created() {
             this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee']
-            this.$http.get('/api/goods').then((response) => {
-                response = response.body
-                if (response.errno === ERR_OK) {
-                    this.goods = response.data
-                    this.$nextTick(() => {
-                        this._initScroll()
-                        this._calculateHeight()
-                    })
-                }
-            })
+            const url = debug ? '/api/goods' : 'http://ustbhuangyi.com/sell/api/goods';
+            this.$http.get(url).then((response) => {
+              response = response.body;
+              if (response.errno === ERR_OK) {
+                this.goods = response.data;
+                this.$nextTick(() => {
+                  this._initScroll();
+                  this._calculateHeight();
+                });
+              }
+            });
         },
         computed: {
             currentIndex() {
@@ -81,6 +87,17 @@
                     }
                 }
                 return 0
+            },
+            selectFoods() {
+              let foods = []
+              this.goods.forEach((good) => {
+                good.foods.forEach((food) => {
+                  if(food.count){
+                    foods.push(food)
+                  }
+                })
+              })
+              return foods
             }
         },
         methods: {
@@ -88,7 +105,6 @@
                 if(!event._constructed){//浏览器原生的事件没有改属性，自己派发的事件有这个属性
                     return
                 }
-                console.log(index)
                 let foodList = this.$refs.foodList
                 let el = foodList[index]
                 this.foodsScoll.scrollToElement(el,300)
@@ -116,10 +132,24 @@
                     this.listHeight.push(height)
                 }
             },
-            
+            _drop(target) {
+              // 体验优化,异步执行下落动画
+              this.$nextTick(() => {
+                this.$refs.shopcart.drop(target)
+              });
+            },
+            addFood(target){
+              this._drop(target);
+            }
         },
         components: {
-            shopcart
+            shopcart,
+            cartcontrol
+        },
+        events: {
+          'add' (target) {
+            this._drop(target)
+          }
         }
     }
 </script>

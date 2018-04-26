@@ -1,4 +1,4 @@
-<tempalte>
+<template>
   <div class="cartcontrol">
     <transition name="move">
       <div class="cart-decrease" v-show="food.count>0" @click.stop.prevent="decreaseCart">
@@ -8,8 +8,9 @@
     <div class="cart-count" v-show="food.count>0">{{food.count}}</div>
     <div class="cart-add icon-add_circle" @click.stop.prevent="addCart"></div>
   </div>
-</tempalte>
+</template>
 <script type="text/ecmascript-6" charset="utf-8">
+    import Vue from 'vue'
     export default {
         props: {
             food: {
@@ -17,7 +18,28 @@
             }
         },
         created() {
-            console.log(this.food)
+        },
+        methods: {
+            addCart (event){
+                if(!event._constructed){//自己的事件派发的
+                    return
+                }
+                if(!this.food.count){
+                    Vue.set(this.food,'count',1)
+                }else{
+                    this.food.count++
+                }
+                this.$emit('add', event.target)
+            },
+            decreaseCart (event){
+                if(!event._constructed){//自己的事件派发的
+                    return
+                }
+                if(this.food.count){
+                    this.food.count--
+                }
+            }
+
         }
     }
 </script>
