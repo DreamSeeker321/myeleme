@@ -1,4 +1,5 @@
 <template>
+  <div>
     <div class="goods">
         <div class="menu-wrapper" ref="menuWrapper">
             <ul>
@@ -39,13 +40,15 @@
         </div>
         <shopcart ref=shopcart :selectFoods="selectFoods" :deliveryPrice="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
     </div>
+    <food @add="addFood" :food="selectedFood" ref="food"></food>
+  </div>
 </template>
 
 <script type="text/ecmascript-6">
     import BScroll from 'better-scroll'
     import shopcart from 'components/shopcart/shopcart'
     import cartcontrol from 'components/cartcontrol/cartcontrol'
-    //import food from 'components/food/food';
+    import food from 'components/food/food';
 
     const ERR_OK = 0
     const debug = process.env.NODE_ENV !== 'production';
@@ -140,16 +143,19 @@
             },
             addFood(target){
               this._drop(target);
+            },
+            selectFood(food, event){
+              if(!event._constructed){
+                return;
+              }
+              this.selectedFood = food
+              this.$refs.food.show()
             }
         },
         components: {
             shopcart,
-            cartcontrol
-        },
-        events: {
-          'add' (target) {
-            this._drop(target)
-          }
+            cartcontrol,
+            food
         }
     }
 </script>
