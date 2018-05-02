@@ -60,6 +60,7 @@
 <script type="text/ecmascript-6">
   import BScroll from 'better-scroll';
   import Vue from 'vue';
+  import {formatDate} from 'common/js/date'
   import cartcontrol from 'components/cartcontrol/cartcontrol';
   import split from 'components/split/split'
   import ratingselect from 'components/ratingselect/ratingselect'
@@ -84,6 +85,14 @@
           negative: '吐槽'
         }
       };
+    },
+    created() {
+      this.$http.get('api/ratings').then((response) => {
+        response = response.body
+          if(response.errno === ERR_OK){
+            this.ratings = resonse.data
+          }
+      })
     },
     methods: {
       show() {
@@ -146,12 +155,6 @@
       cartcontrol,
       split,
       ratingselect
-    },
-    filters: {
-      formatDate(time) {
-        let data = new Date(time)
-        return formatDate(date,'yyyy-MM-dd hh:mm:')
-      }
     }
   };
 </script>
